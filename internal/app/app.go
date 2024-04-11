@@ -2,6 +2,7 @@ package app
 
 import (
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 
 	"context"
 	"errors"
@@ -17,6 +18,7 @@ func StartHTTPServer(
 	ctrls ...httpController,
 ) (shutdown func() error, err error) {
 	e := echo.New()
+	e.Use(middleware.CORS())
 
 	v1 := e.Group("/api/v1")
 
