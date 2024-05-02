@@ -17,9 +17,9 @@ func main() {
 
 	var wg sync.WaitGroup
 
-	notCtrl := ctrl.NewGeneratorCtrl()
+	genCtrl := ctrl.NewGeneratorCtrl()
 
-	shutdownHTTP, err := app.StartHTTPServer(&wg, notCtrl)
+	shutdownHTTP, err := app.StartHTTPServer(&wg, genCtrl)
 	if err != nil {
 		fmt.Println("Failed to start HTTP server", err)
 		return
