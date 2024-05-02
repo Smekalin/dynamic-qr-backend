@@ -1,7 +1,7 @@
 package v1
 
 import (
-	"fmt"
+	"encoding/json"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"rsc.io/qr"
@@ -10,17 +10,17 @@ import (
 type GeneratorCtrl struct {
 }
 
-func NewGeneratorCtrl() *GeneratorCtrl { return &GeneratorCtrl{} }
+var stat = Stat{Usage: 0, Links: make([]string, 0, 10000)}
 
-var a = make(map[string][]byte)
+func NewGeneratorCtrl() *GeneratorCtrl { return &GeneratorCtrl{} }
 
 func (c *GeneratorCtrl) Register(e *echo.Group) {
 	g := e.Group("/generator")
-	g.GET("", c.GetList)
-	g.GET("/create", c.GenerateQR)
+	g.GET("/create", c.generateQR)
+	g.GET("/stat", c.getStat)
 }
 
-func (c *GeneratorCtrl) GenerateQR(e echo.Context) error {
+func (c *GeneratorCtrl) generateQR(e echo.Context) error {
 	url := e.Request().URL.Query().Get("url")
 
 	encode, err := qr.Encode(url, 2)
@@ -29,8 +29,7 @@ func (c *GeneratorCtrl) GenerateQR(e echo.Context) error {
 	}
 	png := encode.PNG()
 
-	// TODO: RECORD to DB
-	a[url] = png
+	updateStat(url)
 
 	e.Response().Header().Set("Content-Type", "image/png")
 	_, err = e.Response().Write(png)
@@ -40,10 +39,27 @@ func (c *GeneratorCtrl) GenerateQR(e echo.Context) error {
 	return nil
 }
 
-func (c *GeneratorCtrl) GetList(e echo.Context) error {
-	fmt.Println(e.Request().Context())
+func (c *GeneratorCtrl) getStat(e echo.Context) error {
+	parsedJson, err := json.Marshal(stat)
+	if err != nil {
+		return e.HTML(http.StatusOK, "SOME ERROR")
+	}
 
-	// TODO: READ from DB
-	return e.JSON(http.StatusOK, a)
+	return e.JSONBlob(http.StatusOK, parsedJson)
+}
 
+func updateStat(url string) {
+	stat.Usage += 1
+
+	if len(stat.Links) == 5 {
+		stat.Links = stat.Links[:0]
+	}
+
+	stat.Links = append(stat.Links, url)
+
+}
+
+type Stat struct {
+	Usage int64    `json:"usage"`
+	Links []string `json:"links"`
 }
