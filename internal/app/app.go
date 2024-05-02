@@ -31,7 +31,7 @@ func StartHTTPServer(
 		ReadHeaderTimeout: 3 * time.Second,
 	}
 
-	addr := "localhost:8080"
+	addr := "0.0.0.0:8080"
 	l, err := net.Listen("tcp", addr)
 	if err != nil {
 		return nil, fmt.Errorf("start http server: %w", err)
