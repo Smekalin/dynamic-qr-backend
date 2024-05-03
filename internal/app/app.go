@@ -1,14 +1,14 @@
 package app
 
 import (
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
-
 	"context"
 	"errors"
 	"fmt"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"net"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 )
@@ -31,7 +31,9 @@ func StartHTTPServer(
 		ReadHeaderTimeout: 3 * time.Second,
 	}
 
-	addr := "0.0.0.0:8080"
+	port := getPort()
+	addr := "0.0.0.0" + ":" + port
+
 	l, err := net.Listen("tcp", addr)
 	if err != nil {
 		return nil, fmt.Errorf("start http server: %w", err)
@@ -57,4 +59,13 @@ func StartHTTPServer(
 
 		return s.Shutdown(ctx)
 	}, nil
+}
+
+func getPort() string {
+	port := os.Getenv("PORT")
+	if len(port) == 0 {
+		port = "8080"
+	}
+
+	return port
 }
